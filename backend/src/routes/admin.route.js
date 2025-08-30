@@ -4,11 +4,39 @@ import {
   deleteSong,
   createAlbum,
   deleteAlbum,
+  checkAdmin,
 } from "../controllers/admin.controller.js";
 import { protectRoute, requireAdmin } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
+router.use(protectRoute, requireAdmin);
+
+/**
+ * @swagger
+ * /api/admin/status:
+ *   get:
+ *     summary: Admin route kontrol endpoint'i
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Admin route çalışıyor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Admin routes working fine!
+ *       401:
+ *         description: Yetkilendirme hatası
+ */
+router.get("/status", (req, res) => {
+  res.json({ message: "Admin routes working fine!" });
+});
 /**
  * @swagger
  * tags:
@@ -58,7 +86,7 @@ const router = Router();
  *       500:
  *         description: Sunucu hatası
  */
-router.post("/songs", protectRoute, requireAdmin, createSong);
+router.post("/songs", createSong);
 
 /**
  * @swagger
@@ -83,7 +111,7 @@ router.post("/songs", protectRoute, requireAdmin, createSong);
  *       500:
  *         description: Sunucu hatası
  */
-router.delete("/songs/:id", protectRoute, requireAdmin, deleteSong);
+router.delete("/songs/:id", deleteSong);
 
 /**
  * @swagger
@@ -118,7 +146,7 @@ router.delete("/songs/:id", protectRoute, requireAdmin, deleteSong);
  *       500:
  *         description: Sunucu hatası
  */
-router.post("/albums", protectRoute, requireAdmin, createAlbum);
+router.post("/albums", createAlbum);
 
 /**
  * @swagger
@@ -143,6 +171,6 @@ router.post("/albums", protectRoute, requireAdmin, createAlbum);
  *       500:
  *         description: Sunucu hatası
  */
-router.delete("/albums/:id", protectRoute, requireAdmin, deleteAlbum);
+router.delete("/albums/:id", deleteAlbum);
 
 export default router;
