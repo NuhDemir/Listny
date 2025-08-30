@@ -1,6 +1,6 @@
-import { User } from "../middleware/models/user.model.js";
+import User from "../models/user.model.js";
 
-export const authCallback = async (req, res) => {
+export const authCallback = async (req, res, next) => {
   try {
     // Handle the callback logic here
     const { id, firstName, lastName, imageUrl } = req.body; // Example: get data from request body
@@ -19,5 +19,7 @@ export const authCallback = async (req, res) => {
   } catch (error) {
     console.error("Error handling callback:", error);
     res.status(500).json({ message: "Internal server error", error });
+
+    next(error);
   }
 };
