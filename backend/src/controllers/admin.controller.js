@@ -1,107 +1,155 @@
 import Song from "../models/song.model.js";
 import Album from "../models/album.model.js";
-import cloudinary from "../lib/cloudinary.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../lib/cloudinary.js";
+import chalk from "chalk";
 
-const uploadToCloudinary = async (file) => {
-  try {
-    const result = await cloudinary.uploader.upload(file.tempFilePath, {
-      resource_type: "auto",
-    });
-    return result.secure_url;
-  } catch (error) {
-    console.error("Error uploading to Cloudinary:", error);
-    throw new Error("Cloudinary upload failed");
-  }
-};
-
+// Şarkı oluşturma
 export const createSong = async (req, res, next) => {
   try {
-    // 1. Dosyaların yüklenip yüklenmediğini kontrol et
     if (!req.files || !req.files.audioFile || !req.files.imageFile) {
-      return res.status(400).json({ message: "Please upload all files" });
+      return res
+        .status(400)
+        .json({ message: "Lütfen tüm dosyaları yükleyin." });
     }
 
-    // 2. Body’den gelen verileri al
-    const { title, artist, albumId, duration } = req.body;
-
-    // 3. Dosyaları al
+    const { title, artist, albumId, duration, genre, isFeatured } = req.body;
     const audioFile = req.files.audioFile;
     const imageFile = req.files.imageFile;
 
-    // 4. Dosyaların URL’lerini belirle (örneğin server’ın uploads klasörüne kaydedilmiş olsun)
     const audioUrl = await uploadToCloudinary(audioFile);
     const imageUrl = await uploadToCloudinary(imageFile);
 
-    // 5. Yeni şarkıyı oluştur
     const song = new Song({
       title,
       artist,
       audioUrl,
       imageUrl,
-      duration,
+      duration: parseInt(duration), // Süreyi sayıya çevir
       albumId: albumId || null,
+      genre,
+      isFeatured: isFeatured === "true", // Boolean değere çevir
     });
 
-    // 6. Şarkıyı veritabanına kaydet
     await song.save();
 
-    // 7. Eğer şarkı bir albüme aitse, albümün songs listesine ekle
     if (albumId) {
       await Album.findByIdAndUpdate(albumId, {
         $push: { songs: song._id },
       });
     }
 
-    // 8. Başarılı cevabı gönder
-    res.status(201).json({ message: "Song created successfully", song });
+    console.log(chalk.green.bold(`🎵 Yeni şarkı oluşturuldu: ${song.title}`));
+    res.status(201).json({ message: "Şarkı başarıyla oluşturuldu", song });
   } catch (error) {
-    console.error("Error in createSong", error); // hata logu
-    return res.status(500).json({ message: "Internal server error" });
-
-    next(error);
+    console.error(chalk.red.bold(`❌ createSong hatası: ${error.message}`));
+    next(error); // Hata işleyiciye gönder
   }
 };
 
+// Şarkı silme
 export const deleteSong = async (req, res, next) => {
   try {
     const { id } = req.params;
     const song = await Song.findById(id);
+
+    if (!song) {
+      return res.status(404).json({ message: "Şarkı bulunamadı." });
+    }
+
+    // Cloudinary'den dosyaları sil (public ID'yi URL'den çıkarmanız gerekebilir)
+    // Örnek: "https://res.cloudinary.com/your_cloud_name/image/upload/v12345/folder/public_id.jpg"
+    // Public ID'yi ayıklamak için regex kullanabilirsiniz.
+    const audioPublicId = song.audioUrl.split("/").pop().split(".")[0];
+    const imagePublicId = song.imageUrl.split("/").pop().split(".")[0];
+
+    await deleteFromCloudinary(`listny/${audioPublicId}`); // Klasör adını ekleyin
+    await deleteFromCloudinary(`listny/${imagePublicId}`); // Klasör adını ekleyin
 
     if (song.albumId) {
       await Album.findByIdAndUpdate(song.albumId, {
         $pull: { songs: song._id },
       });
     }
-  } catch (error) {
-    console.error("Error in deleteSong", error); // hata logu
-    return res.status(500).json({ message: "Internal server error" });
+    await Song.findByIdAndDelete(id);
 
+    console.log(chalk.yellow.bold(`🗑️ Şarkı silindi: ${song.title}`));
+    res.status(200).json({ message: "Şarkı başarıyla silindi" });
+  } catch (error) {
+    console.error(chalk.red.bold(`❌ deleteSong hatası: ${error.message}`));
     next(error);
   }
 };
 
+// Albüm oluşturma
 export const createAlbum = async (req, res, next) => {
   try {
-    const { title, artist, releaseYear } = req.body;
-    const { imageUrl } = req.files;
-
-    // Validate input
-    if (!title || !artist || !releaseYear || !imageUrl) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!req.files || !req.files.imageFile) {
+      // `imageUrl` yerine `imageFile`
+      return res
+        .status(400)
+        .json({ message: "Lütfen albüm kapak resmini yükleyin." });
     }
 
-    // Create new album
+    const { title, artist, releaseYear } = req.body;
+    const imageFile = req.files.imageFile;
+
+    if (!title || !artist || !releaseYear) {
+      return res.status(400).json({ message: "Tüm alanlar zorunludur." });
+    }
+
+    const imageUrl = await uploadToCloudinary(imageFile); // Cloudinary'ye yükle
+
     const album = new Album({
       title,
       artist,
-      releaseYear,
-      coverImage: imageUrl,
+      releaseYear: parseInt(releaseYear), // Yılı sayıya çevir
+      imageUrl, // `coverImage` yerine `imageUrl` kullanıyorsan
     });
 
     await album.save();
 
-    res.status(201).json({ message: "Album created successfully", album });
-  } catch (error) {}
+    console.log(chalk.green.bold(`💿 Yeni albüm oluşturuldu: ${album.title}`));
+    res.status(201).json({ message: "Albüm başarıyla oluşturuldu", album });
+  } catch (error) {
+    console.error(chalk.red.bold(`❌ createAlbum hatası: ${error.message}`));
+    next(error);
+  }
 };
 
-export const deleteAlbum = async (req, res, next) => {};
+// Albüm silme
+export const deleteAlbum = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const album = await Album.findById(id);
+
+    if (!album) {
+      return res.status(404).json({ message: "Albüm bulunamadı." });
+    }
+
+    // Albüm kapak resmini Cloudinary'den sil
+    const imagePublicId = album.imageUrl.split("/").pop().split(".")[0];
+    await deleteFromCloudinary(`listny/${imagePublicId}`);
+
+    // Albüme ait tüm şarkıları bul ve şarkıların ses ve resim dosyalarını sil
+    const songsInAlbum = await Song.find({ albumId: id });
+    for (const song of songsInAlbum) {
+      const audioPublicId = song.audioUrl.split("/").pop().split(".")[0];
+      const imagePublicId = song.imageUrl.split("/").pop().split(".")[0];
+      await deleteFromCloudinary(`listny/${audioPublicId}`);
+      await deleteFromCloudinary(`listny/${imagePublicId}`);
+    }
+
+    await Song.deleteMany({ albumId: id });
+    await Album.findByIdAndDelete(id);
+
+    console.log(
+      chalk.yellow.bold(`🗑️ Albüm ve ilgili şarkılar silindi: ${album.title}`)
+    );
+    res
+      .status(200)
+      .json({ message: "Albüm ve ilgili şarkılar başarıyla silindi" });
+  } catch (error) {
+    console.error(chalk.red.bold(`❌ deleteAlbum hatası: ${error.message}`));
+    next(error);
+  }
+};
