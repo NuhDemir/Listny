@@ -7,6 +7,10 @@ import {
   checkAdmin,
 } from "../controllers/admin.controller.js";
 import { protectRoute, requireAdmin } from "../middleware/auth.middleware.js";
+import {
+  validateSong,
+  validateAlbum,
+} from "../middleware/validation.middleware.js"; // Yeni middleware
 
 const router = Router();
 
@@ -86,7 +90,7 @@ router.get("/status", (req, res) => {
  *       500:
  *         description: Sunucu hatası
  */
-router.post("/songs", createSong);
+router.post("/songs", validateSong, createSong);
 
 /**
  * @swagger
@@ -146,7 +150,7 @@ router.delete("/songs/:id", deleteSong);
  *       500:
  *         description: Sunucu hatası
  */
-router.post("/albums", createAlbum);
+router.post("/albums", validateAlbum, createAlbum);
 
 /**
  * @swagger
