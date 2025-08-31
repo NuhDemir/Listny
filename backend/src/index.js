@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import chalk from "chalk"; // 🔥 Chalk eklendi
 import { connectDB } from "./lib/db.js";
 
 // Utils
@@ -16,7 +17,7 @@ import songRoutes from "./routes/song.route.js";
 import albumRoutes from "./routes/album.route.js";
 import statsRoutes from "./routes/stat.route.js";
 
-dotenv.config();
+dotenv.config({ override: true });
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -39,6 +40,6 @@ app.use("/api/stats", statsRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(chalk.cyan.bold(`🚀 Server running on port ${PORT}`));
   connectDB();
 });
