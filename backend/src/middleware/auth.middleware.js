@@ -11,11 +11,11 @@ export const protectRoute = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("ProtectRoute Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    next(error);
   }
 };
 
-// 👑 Admin rolünü kontrol eden middleware
+//  Admin rolünü kontrol eden middleware
 export const requireAdmin = async (req, res, next) => {
   try {
     if (!req.auth || !req.auth.userId) {
@@ -41,6 +41,6 @@ export const requireAdmin = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("RequireAdmin Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    next(error);
   }
 };

@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
+import chalk from "chalk";
 
 export const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(chalk.green.bold("✅ MongoDB Connected"));
   } catch (error) {
-    console.log("error");
+    console.log(chalk.red.bold("❌ MongoDB Connection Error: "), error.message);
     process.exit(1);
   }
 };
