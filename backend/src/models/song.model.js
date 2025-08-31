@@ -27,6 +27,18 @@ const songSchema = new mongoose.Schema(
       ref: "Album",
       required: false,
     },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    playCount: {
+      type: Number,
+      default: 0,
+    },
+    genre: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );
