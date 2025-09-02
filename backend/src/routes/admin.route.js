@@ -4,7 +4,6 @@ import {
   deleteSong,
   createAlbum,
   deleteAlbum,
-  checkAdmin,
 } from "../controllers/admin.controller.js";
 import { protectRoute, requireAdmin } from "../middleware/auth.middleware.js";
 import {
