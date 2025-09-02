@@ -1,48 +1,18 @@
-import Song from "../models/song.model.js";
-import Album from "../models/album.model.js";
+import { CreateSongDTO } from "../dtos/song.dto.js";
+import songService from "../services/song.service.js";
 import { uploadToCloudinary, deleteFromCloudinary } from "../lib/cloudinary.js";
 import chalk from "chalk";
 
 // Şarkı oluşturma
 export const createSong = async (req, res, next) => {
   try {
-    if (!req.files || !req.files.audioFile || !req.files.imageFile) {
-      return res
-        .status(400)
-        .json({ message: "Lütfen tüm dosyaları yükleyin." });
-    }
+    // request.body convert DTO
+    const createSongDTO = new CreateSongDTO(req.body);
 
-    const { title, artist, albumId, duration, genre, isFeatured } = req.body;
-    const audioFile = req.files.audioFile;
-    const imageFile = req.files.imageFile;
-
-    const audioUrl = await uploadToCloudinary(audioFile);
-    const imageUrl = await uploadToCloudinary(imageFile);
-
-    const song = new Song({
-      title,
-      artist,
-      audioUrl,
-      imageUrl,
-      duration: parseInt(duration), // Süreyi sayıya çevir
-      albumId: albumId || null,
-      genre,
-      isFeatured: isFeatured === "true", // Boolean değere çevir
-    });
-
-    await song.save();
-
-    if (albumId) {
-      await Album.findByIdAndUpdate(albumId, {
-        $push: { songs: song._id },
-      });
-    }
-
-    console.log(chalk.green.bold(`🎵 Yeni şarkı oluşturuldu: ${song.title}`));
-    res.status(201).json({ message: "Şarkı başarıyla oluşturuldu", song });
+    // DTO send service
+    const song = await songService.createSong(createSongDTO);
   } catch (error) {
-    console.error(chalk.red.bold(`❌ createSong hatası: ${error.message}`));
-    next(error); // Hata işleyiciye gönder
+    next(error);
   }
 };
 
