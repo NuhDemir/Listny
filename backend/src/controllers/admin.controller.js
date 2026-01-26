@@ -1,16 +1,25 @@
 import { CreateSongDTO } from "../dtos/song.dto.js";
 import songService from "../services/song.service.js";
 import { uploadToCloudinary, deleteFromCloudinary } from "../lib/cloudinary.js";
+import Song from "../models/song.model.js";
+import Album from "../models/album.model.js";
 import chalk from "chalk";
 
 // Şarkı oluşturma
 export const createSong = async (req, res, next) => {
   try {
+    if (!req.files || !req.files.audioFile || !req.files.imageFile) {
+      return res.status(400).json({ message: "Ses ve resim dosyaları zorunludur." });
+    }
+
     // request.body convert DTO
     const createSongDTO = new CreateSongDTO(req.body);
 
     // DTO send service
-    const song = await songService.createSong(createSongDTO);
+    const song = await songService.create(createSongDTO, req.files);
+    
+    console.log(chalk.green.bold(`🎵 Yeni şarkı oluşturuldu: ${song.title}`));
+    res.status(201).json({ message: "Şarkı başarıyla oluşturuldu", song });
   } catch (error) {
     next(error);
   }

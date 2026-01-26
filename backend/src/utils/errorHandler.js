@@ -1,9 +1,21 @@
+import { ApiError } from "./ApiError.js";
+
+// eslint-disable-next-line no-unused-vars
 export const errorHandler = (err, req, res, next) => {
-  console.error("Global error handler", err);
-  res.status(500).json({
-    message:
-      process.env.NODE_ENV === "production"
-        ? "Internal Server Error"
-        : err.message,
-  });
+  let error = err;
+
+  // If the error is not an instance of ApiError, create a generic one
+  if (!(error instanceof ApiError)) {
+    const statusCode = error.statusCode || error instanceof Error ? 400 : 500;
+    const message = error.message || "Something went wrong";
+    error = new ApiError(statusCode, message, error?.errors || [], error.stack);
+  }
+
+  const response = {
+    ...error,
+    message: error.message,
+    ...(process.env.NODE_ENV === "development" ? { stack: error.stack } : {}),
+  };
+
+  res.status(error.statusCode).json(response);
 };

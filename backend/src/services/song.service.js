@@ -26,7 +26,7 @@ class SongService {
     const savedSong = await newSong.save();
 
     if (createSongDto.albumId) {
-      await Album.findByIdAndUpdate(createSong_dto.albumId, {
+      await Album.findByIdAndUpdate(createSongDto.albumId, {
         $push: { songs: savedSong._id },
       });
     }

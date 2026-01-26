@@ -1,46 +1,67 @@
-import { clerkClient } from "@clerk/express";
+import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
 
 // 🔒 Kullanıcının giriş yapıp yapmadığını kontrol eden middleware
 export const protectRoute = async (req, res, next) => {
   try {
-    if (!req.auth || !req.auth.userId) {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
       return res
         .status(401)
-        .json({ message: "Unauthorized - You must be logged in to Listny" });
+        .json({ message: "Unauthorized - You must be logged in" });
     }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+
+    if (!decoded.userId) {
+      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+    }
+
+    // Get user from database
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized - User not found" });
+    }
+
+    req.userId = decoded.userId;
+    req.user = user; // Add user object to request
     next();
   } catch (error) {
     console.error("ProtectRoute Error:", error);
-    next(error);
+
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+    }
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Unauthorized - Token expired" });
+    }
+
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 //  Admin rolünü kontrol eden middleware
 export const requireAdmin = async (req, res, next) => {
   try {
-    if (!req.auth || !req.auth.userId) {
+    if (!req.userId) {
       return res.status(401).json({ message: "Unauthorized - No user found" });
     }
 
-    const currentUser = await clerkClient.users.getUser(req.auth.userId);
+    const user = await User.findById(req.userId);
 
-    const userEmail = currentUser?.primaryEmailAddress?.emailAddress;
-
-    if (!userEmail) {
-      return res
-        .status(400)
-        .json({ message: "Bad Request - No email found for user" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const isAdmin = process.env.ADMIN_EMAIL === userEmail;
-
-    if (!isAdmin) {
+    if (!user.isAdmin) {
       return res.status(403).json({ message: "Forbidden - Admins only" });
     }
 
     next();
   } catch (error) {
     console.error("RequireAdmin Error:", error);
-    next(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

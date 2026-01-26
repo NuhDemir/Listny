@@ -227,63 +227,13 @@ router.get("/latest", getLatestSongs);
 
 /**
  * @swagger
- * /api/songs/{id}:
+ * /api/songs/trending:
  *   get:
- *     summary: ID'ye göre şarkı getir
+ *     summary: Trend olan şarkıları getir
  *     tags: [Songs]
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *         description: Şarkının kimliği
  *     responses:
  *       200:
- *         description: Şarkı bulundu
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Song'
- *       404:
- *         description: Şarkı bulunamadı
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Song not found
- *       500:
- *         description: Sunucu hatası
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Internal server error
- */
-router.get("/:id", getSongById);
-
-/**
- * @swagger
- * /api/songs/artist/{artistId}:
- *   get:
- *     summary: Bir sanatçının şarkılarını getir
- *     tags: [Songs]
- *     parameters:
- *       - name: artistId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *         description: Sanatçının adı (string formatında)
- *     responses:
- *       200:
- *         description: Sanatçının şarkıları listelendi
+ *         description: Trend olan şarkılar listelendi
  *         content:
  *           application/json:
  *             schema:
@@ -301,42 +251,7 @@ router.get("/:id", getSongById);
  *                   type: string
  *                   example: Internal server error
  */
-router.get("/artist/:artistId", getSongsByArtist);
-
-/**
- * @swagger
- * /api/songs/album/{albumId}:
- *   get:
- *     summary: Albüme ait şarkıları getir
- *     tags: [Songs]
- *     parameters:
- *       - name: albumId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *         description: Albümün kimliği
- *     responses:
- *       200:
- *         description: Albümdeki şarkılar listelendi
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Song'
- *       500:
- *         description: Sunucu hatası
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Internal server error
- */
-router.get("/album/:albumId", getSongsByAlbum);
+router.get("/trending", getTrendingSongs);
 
 /**
  * @swagger
@@ -382,104 +297,6 @@ router.get("/album/:albumId", getSongsByAlbum);
  *                   example: Internal server error
  */
 router.get("/search", searchSongs);
-
-/**
- * @swagger
- * /api/songs/genre/{genre}:
- *   get:
- *     summary: Türe göre şarkıları getir
- *     tags: [Songs]
- *     parameters:
- *       - name: genre
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *         description: Şarkı türü
- *     responses:
- *       200:
- *         description: Türe ait şarkılar listelendi
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Song'
- *       500:
- *         description: Sunucu hatası
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Internal server error
- */
-router.get("/genre/:genre", getSongsByGenre);
-
-/**
- * @swagger
- * /api/songs/year/{year}:
- *   get:
- *     summary: Yıla göre şarkıları getir
- *     tags: [Songs]
- *     parameters:
- *       - name: year
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *         description: Albümün çıkış yılı
- *     responses:
- *       200:
- *         description: Yıla ait şarkılar listelendi
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Song'
- *       500:
- *         description: Sunucu hatası
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Internal server error
- */
-router.get("/year/:year", getSongsByYear);
-
-/**
- * @swagger
- * /api/songs/trending:
- *   get:
- *     summary: Trend olan şarkıları getir
- *     tags: [Songs]
- *     responses:
- *       200:
- *         description: Trend olan şarkılar listelendi
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Song'
- *       500:
- *         description: Sunucu hatası
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Internal server error
- */
-router.get("/trending", getTrendingSongs);
 
 /**
  * @swagger
@@ -574,5 +391,285 @@ router.get("/top-charts", getTopChartSongs);
  *                   example: Internal server error
  */
 router.get("/made-for-you", protectRoute, getMadeForYouSongs);
+
+/**
+ * @swagger
+ * /api/songs/artist/{artistId}:
+ *   get:
+ *     summary: Bir sanatçının şarkılarını getir
+ *     tags: [Songs]
+ *     parameters:
+ *       - name: artistId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Sanatçının adı (string formatında)
+ *     responses:
+ *       200:
+ *         description: Sanatçının şarkıları listelendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Song'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get("/artist/:artistId", getSongsByArtist);
+
+/**
+ * @swagger
+ * /api/songs/album/{albumId}:
+ *   get:
+ *     summary: Albüme ait şarkıları getir
+ *     tags: [Songs]
+ *     parameters:
+ *       - name: albumId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Albümün kimliği
+ *     responses:
+ *       200:
+ *         description: Albümdeki şarkılar listelendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Song'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get("/album/:albumId", getSongsByAlbum);
+
+/**
+ * @swagger
+ * /api/songs/genre/{genre}:
+ *   get:
+ *     summary: Türe göre şarkıları getir
+ *     tags: [Songs]
+ *     parameters:
+ *       - name: genre
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Şarkı türü
+ *     responses:
+ *       200:
+ *         description: Türe ait şarkılar listelendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Song'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get("/genre/:genre", getSongsByGenre);
+
+/**
+ * @swagger
+ * /api/songs/year/{year}:
+ *   get:
+ *     summary: Yıla göre şarkıları getir
+ *     tags: [Songs]
+ *     parameters:
+ *       - name: year
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Albümün çıkış yılı
+ *     responses:
+ *       200:
+ *         description: Yıla ait şarkılar listelendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Song'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get("/year/:year", getSongsByYear);
+
+/**
+ * @swagger
+ * /api/songs/{id}:
+ *   get:
+ *     summary: ID'ye göre şarkı getir
+ *     tags: [Songs]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Şarkının kimliği
+ *     responses:
+ *       200:
+ *         description: Şarkı bulundu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Song'
+ *       404:
+ *         description: Şarkı bulunamadı
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Song not found
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get("/:id", getSongById);
+
+/**
+ * @swagger
+ * /api/songs/random:
+ *   get:
+ *     summary: Rastgele bir şarkı getir
+ *     tags: [Songs]
+ *     responses:
+ *       200:
+ *         description: Rastgele şarkı bulundu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Song'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get("/random", getRandomSong);
+
+/**
+ * @swagger
+ * /api/songs/top-charts:
+ *   get:
+ *     summary: En popüler şarkıları getir
+ *     tags: [Songs]
+ *     responses:
+ *       200:
+ *         description: En popüler şarkılar listelendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Song'
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get("/top-charts", getTopChartSongs);
+
+/**
+ * @swagger
+ * /api/songs/made-for-you:
+ *   get:
+ *     summary: Kullanıcıya özel şarkı önerileri getir
+ *     tags: [Songs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Kullanıcıya özel şarkılar listelendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Song'
+ *       401:
+ *         description: Yetkisiz erişim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized
+ *       500:
+ *         description: Sunucu hatası
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.get("/made-for-you", protectRoute, getMadeForYouSongs);
+
+// NOTE: /:id route must be LAST to avoid matching other routes
+// This prevents "trending", "featured", etc. from being treated as IDs
 
 export default router;

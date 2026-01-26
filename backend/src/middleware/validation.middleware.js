@@ -22,7 +22,7 @@ export const validateAlbum = (req, res, next) => {
     title: Joi.string().required(),
     artist: Joi.string().required(),
     releaseYear: Joi.number().required(),
-    imageUrl: Joi.string().required(),
+    // imageUrl is handled via file upload, not in body
   });
 
   const { error } = schema.validate(req.body);
