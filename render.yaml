@@ -1,0 +1,56 @@
+services:
+  # ---------------------------------------------------------------------------
+  # BACKEND SERVICE (Node.js/Express)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: listny-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free # İhtiyaca göre değiştirilebilir
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        generateValue: false # Kullanıcı tarafından doldurulmalı (Atlas URL)
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true # Otomatik güvenli bir key oluşturur
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: listny-frontend
+          property: host
+
+  # ---------------------------------------------------------------------------
+  # FRONTEND SERVICE (Vite/React Static Site)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: listny-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: listny-backend
+          property: host
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html # SPA routing için gerekli
